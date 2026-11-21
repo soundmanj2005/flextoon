@@ -1,0 +1,44 @@
+{
+  "title": "Meet FlexTek",
+  "resolution": [1280, 720],
+  "fps": 30,
+  "output": "final.mp4",
+  "captions": true,
+  "music": null,
+  "music_volume": 0.12,
+  "scene_padding_seconds": 0.5,
+
+  "style_prompt": "Friendly flat-color cartoon illustration, bold outlines, warm lighting, 16:9.",
+  "character_description": "A cheerful bald cartoon man with a short beard, wearing a navy polo shirt and headset.",
+
+  "voice": {
+    "provider": "placeholder",
+    "voice_id": "PASTE_YOUR_CLONED_VOICE_ID",
+    "model_id": "eleven_multilingual_v2",
+    "cost_per_million_chars": null,
+    "pronunciations": { "FlexTek": "Flex Tek" }
+  },
+
+  "images": { "provider": "placeholder" },
+
+  "scenes": [
+    {
+      "id": "s1",
+      "narration": "Hi, I'm glad you're here. Today I want to show you how a small technical team can punch way above its weight.",
+      "image_prompt": "The character waves at the camera in a bright modern office.",
+      "motion": "zoom_in"
+    },
+    {
+      "id": "s2",
+      "narration": "Most businesses don't need more tools. They need the right few, set up properly, and someone who actually understands them.",
+      "image_prompt": "The character stands in front of a whiteboard with a simple diagram of three connected boxes.",
+      "motion": "pan_right"
+    },
+    {
+      "id": "s3",
+      "narration": "That's what we do. We fix what's broken, simplify what's messy, and build what's missing.",
+      "image_prompt": "The character holds a wrench and a laptop, smiling, with a city skyline behind.",
+      "motion": "zoom_out"
+    }
+  ]
+}

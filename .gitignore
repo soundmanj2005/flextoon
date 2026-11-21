@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+out/
+data/
+characters/
+voice.json
+project.json
+.env
+*.mp4
+.venv/
