@@ -8,3 +8,9 @@ project.json
 .env
 *.mp4
 .venv/
+
+voice_server/voices/
+voice_server/models/
+voice_server/.env
+voices/
+*.wav

@@ -52,7 +52,14 @@ set `FLEXTOON_IMAGE_PROVIDER=openai` and `OPENAI_API_KEY` for real character art
 Use a character in a scene with `"character": "Sam"`. Voice and images are cached by content, so editing
 one scene only pays for that scene.
 
-## Your own voice
+## Self-hosted voice (no per-use fees)
+FlexToon can run its own voice cloning on a GPU machine such as an Unraid box instead of a paid service.
+See `voice_server/README.md` to run the server, then copy `voice.local.example.json` to `voice.json`
+(`provider: "local_tts"`) and set `FLEXTOON_VOICE_API_KEY`. Tested with a dummy backend; the Chatterbox
+backend (MIT licensed, but its project is retired) has not yet been run on real hardware.
+Avoid models with non-commercial weights (for example XTTS-v2, F5-TTS) if you will sell the output.
+
+## Your own voice (hosted option: ElevenLabs)
     export ELEVENLABS_API_KEY=...
     python clone_voice.py --name "My voice" --samples rec1.wav rec2.wav --i-confirm-this-is-my-voice
 

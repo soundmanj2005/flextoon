@@ -1,0 +1,8 @@
+{
+  "provider": "local_tts",
+  "engine": "http",
+  "url": "http://192.168.1.50:8000",
+  "voice": "myvoice",
+  "options": { "exaggeration": 0.5, "cfg_weight": 0.5 },
+  "pronunciations": { "FlexTek": "Flex Tek" }
+}

@@ -1,0 +1,27 @@
+# From the repository root:  docker compose -f voice_server/docker-compose.yml up -d --build
+# Requires the NVIDIA container runtime on the host (on Unraid: the Nvidia Driver plugin).
+# Create a .env file next to this one containing:  VOICE_API_KEY=<long random string>
+services:
+  flextoon-voice:
+    build:
+      context: ..
+      dockerfile: voice_server/Dockerfile
+    image: flextoon-voice
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      VOICE_API_KEY: ${VOICE_API_KEY:?set VOICE_API_KEY in .env}
+      VOICE_BACKEND: chatterbox
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    volumes:
+      - ./voices:/voices
+      - ./models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

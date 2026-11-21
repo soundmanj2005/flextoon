@@ -44,7 +44,8 @@ def make_voice(scene: dict, cfg: dict, out_dir: Path, force: bool = False) -> Pa
                 return candidate
         raise FileNotFoundError(f"No audio file for scene {scene['id']} in {folder}")
 
-    key = _hash(provider, cfg.get("voice_id", ""), cfg.get("model_id", ""), text)
+    key = _hash(provider, cfg.get("voice_id", ""), cfg.get("model_id", ""),
+                cfg.get("engine", ""), cfg.get("voice", ""), text)
     ext = "mp3" if provider == "elevenlabs" else "wav"
     out = out_dir / f"{scene['id']}_{key}.{ext}"
     if out.exists() and not force:
@@ -87,6 +88,10 @@ def make_voice(scene: dict, cfg: dict, out_dir: Path, force: bool = False) -> Pa
         )
         resp.raise_for_status()
         out.write_bytes(resp.content)
+        return out
+
+    if provider == "local_tts":
+        _local_tts(text, cfg, out)
         return out
 
     raise ValueError(f"Unknown voice provider: {provider}")
@@ -194,3 +199,56 @@ def _placeholder_image(scene: dict, prompt: str, key: str, out: Path) -> None:
         line += word + " "
     px.text((90, y), line, fill=(230, 230, 230), font=small)
     img.save(out)
+
+
+# --------------------------------------------------------------------------
+# Self-hosted voice (provider "local_tts")
+# --------------------------------------------------------------------------
+
+def _local_tts(text: str, cfg: dict, out: Path) -> None:
+    """Self-hosted speech. engine: "http" (voice server), "chatterbox" (in-process), "command"."""
+    engine = cfg.get("engine", "http")
+
+    if engine == "http":
+        # Talk to voice_server running on another machine (for example an Unraid box).
+        headers = {}
+        api_key = os.environ.get("FLEXTOON_VOICE_API_KEY") or cfg.get("api_key")
+        if api_key:
+            headers["X-API-Key"] = api_key
+        payload = {"text": text, "voice": cfg.get("voice", "default"), **cfg.get("options", {})}
+        resp = requests.post(cfg["url"].rstrip("/") + "/synthesize", json=payload,
+                             headers=headers, timeout=cfg.get("timeout", 900))
+        if resp.status_code == 401:
+            raise RuntimeError("Voice server rejected the API key. Set FLEXTOON_VOICE_API_KEY "
+                               "to the same value as the server's VOICE_API_KEY.")
+        if resp.status_code >= 400:
+            detail = resp.json().get("error") if resp.headers.get("content-type", "").startswith(
+                "application/json") else resp.text[:200]
+            raise RuntimeError(f"Voice server error {resp.status_code}: {detail}")
+        out.write_bytes(resp.content)
+        return
+
+    if engine == "chatterbox":
+        # Run the model in this process (needs torch + chatterbox-tts, ideally a GPU).
+        global _CHATTERBOX
+        try:
+            backend = _CHATTERBOX
+        except NameError:
+            from voice_server.backends import ChatterboxBackend
+            backend = _CHATTERBOX = ChatterboxBackend()
+        ref = Path(cfg["reference_audio"]) if cfg.get("reference_audio") else None
+        out.write_bytes(backend.synthesize(text, ref, cfg.get("options", {})))
+        return
+
+    if engine == "command":
+        # Any program that writes a WAV: "my_tts {text_file} {output} {reference}"
+        import shlex
+        text_file = out.with_suffix(".txt")
+        text_file.write_text(text, encoding="utf-8")
+        args = [a.replace("{text_file}", str(text_file)).replace("{output}", str(out))
+                 .replace("{reference}", cfg.get("reference_audio", ""))
+                for a in shlex.split(cfg["command"])]
+        subprocess.run(args, check=True)
+        return
+
+    raise ValueError(f"Unknown local_tts engine: {engine}")
